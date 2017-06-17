@@ -15,5 +15,16 @@ export function createStore() {
     strict: process.env.NODE_ENV !== 'production',
   })
 
+  if (module.hot) {
+    module.hot.accept(['./modules/basket', './modules/product'], () => {
+      store.hotUpdate({
+        modules: {
+          basket: require('./modules/basket').basketModule,
+          product: require('./modules/product').productModule,
+        },
+      })
+    })
+  }
+
   return store
 }
