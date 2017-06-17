@@ -20,13 +20,15 @@ Vue.config.performance = process.env.NODE_ENV !== 'production'
 // making them available everywhere as `this.$router` and `this.$store`.
 export function createApp() {
   const router = createRouter()
+  const store = createStore()
 
   createApi()
 
   const app = new Vue({
     router,
+    store,
     ...App,
   })
 
-  return { app, router }
+  return { app, store, router }
 }
