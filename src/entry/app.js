@@ -2,6 +2,7 @@ import Vue from 'vue'
 import App from '../views/App.vue'
 import createApi from '../api'
 import createRouter from '../router'
+import createStore from '../store'
 import * as filters from '../utils/filters'
 
 // register global utility filters.
@@ -18,13 +19,15 @@ Vue.config.performance = process.env.NODE_ENV !== 'production'
 // making them available everywhere as `this.$router` and `this.$store`.
 export default function createAPp () {
   const router = createRouter()
+  const store = createStore()
 
   createApi()
 
   const app = new Vue({
     router,
+    store,
     ...App
   })
 
-  return { app, router }
+  return { app, store, router }
 }
