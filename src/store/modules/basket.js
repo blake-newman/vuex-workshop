@@ -1,3 +1,5 @@
+import Vue from 'vue'
+
 function createState () {
   return {}
 }
@@ -5,5 +7,19 @@ function createState () {
 export default {
   namespaced: true,
 
-  state: createState
+  state: createState,
+
+  mutations: {
+    ADD (state, payload) {
+      payload.forEach(item => Vue.set(state, item.id, item))
+    },
+
+    REMOVE (state, payload) {
+      payload.forEach(id => Vue.delete(state, id))
+    },
+
+    DESTROY (state) {
+      state = createState()
+    }
+  }
 }
