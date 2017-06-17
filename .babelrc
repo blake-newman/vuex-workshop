@@ -1,0 +1,40 @@
+{
+  "comments": true,
+  "plugins": [
+    "transform-new-target",
+    "transform-vue-jsx",
+    "syntax-dynamic-import"
+  ],
+  "env": {
+    "client": {
+      "presets": [
+        "stage-2",
+        [
+          "env",
+          {
+            "debug": false,
+            "loose": true,
+            "modules": false,
+            "useBuiltIns": true
+          }
+        ]
+      ]
+    },
+    "node": {
+      "presets": [
+        "stage-2",
+        [
+          "env",
+          {
+            "debug": false,
+            "useBuiltIns": true,
+            "modules": "commonjs",
+            "targets": {
+              "node": "current"
+            }
+          }
+        ]
+      ]
+    }
+  }
+}
