@@ -1,4 +1,3 @@
-import Vue from 'vue'
 import { getProducts, getProductById } from '../../api/product'
 
 function createDefaultState() {
@@ -7,7 +6,9 @@ function createDefaultState() {
 
 const mutations = {
   ADD(state, payload) {
-    payload.forEach(item => Vue.set(state, item.id, item))
+    const data = {}
+    payload.forEach(item => (data[item.id] = item))
+    Object.assign(state, data)
   },
 }
 
