@@ -12,7 +12,7 @@
         <img :src="product.image" :alt="product.title" >
         <h2>{{ product.title }}</h2>
         <p class="description">{{ product.desc }}</p>
-        <button v-if="product.stocked" @click="buy(product.id)">Buy now</button>
+        <button v-if="product.stocked" @click="addProduct(product)">Buy now</button>
         <span v-if="!product.stocked" class="no-stock">Out of stock</span>
         <p class="price">
           {{ product.price | currency }}
@@ -24,50 +24,26 @@
 </template>
 
 <script>
-  import { getProducts } from '../api/product'
-  import { addProductToBasket } from '../api/basket'
+  import { mapGetters, mapActions } from 'vuex'
 
   export default {
     name: 'ProductListView',
 
-    data () {
-      return {
-        data: [],
-        filter: 'all'
-      }
-    },
+    asyncData: ({ dispatch }) => dispatch('product/get'),
+
+    data: () => ({ filter: 'all' }),
 
     computed: {
-      stockedProducts () {
-        return this.data.filter(product => product.stocked)
-      },
-
-      discountedProducts () {
-        return this.data.filter(product => product.price < product.basePrice)
-      },
+      ...mapGetters('product', ['list', 'stockedList', 'discountedList']),
   
       products () {
-        if (this.filter === 'all') return this.data
-        return this[`${this.filter}Products`]
+        if (this.filter === 'all') return this.list
+        return this[`${this.filter}List`]
       }
     },
 
     methods: {
-      buy (id) {
-        addProductToBasket(id).then(({ data }) => {
-          const products = data.payload.map(({ id, quantity }) => {
-            const product = this.data.filter(product => product.id === id)[0]
-            return Object.assign({ quantity }, product)
-          })
-          this.$emit('basket::update', { products, show: true })
-        })
-      }
-    },
-
-    mounted () {
-      getProducts().then(({ data }) => {
-        this.data = data.payload
-      })
+      ...mapActions('basket', ['addProduct'])
     }
   }
 </script>
