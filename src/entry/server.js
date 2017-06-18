@@ -8,7 +8,11 @@ export default function serverEntry (context) {
     router.onReady(() => {
       // Check route has components, if not dispatch 404 error
       const components = router.getMatchedComponents()
-      if (!components.length) throw new Error(`404: ${context.url}`)
+      if (!components.length) {
+        store.state.error = { status: 404, message: 'Not Found' }
+        resolve()
+        return
+      }
 
       Promise.all([
         ...components
@@ -17,6 +21,11 @@ export default function serverEntry (context) {
           .map(asyncData => asyncData(store, router.currentRoute, null))
       ]).then(resolve).catch(reject)
     }, reject)
+  })
+  .catch(error => {
+    const status = error.response ? error.response.status : error.status || 500
+    const message = error.response ? error.response.statusText : error.message
+    store.state.error = { status, message }
   })
   .then(() => {
     context.state = store.state

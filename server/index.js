@@ -103,8 +103,7 @@ function render (req, res) {
 
   const context = { url: req.url }
   renderer.renderToString(context, (error, html) => {
-    if (error) console.log(error)
-    res.end(html)
+    res.status(context.state.error ? context.state.error.status : 200).end(html)
     if (cacheable) microCache.set(req.url, html)
     if (!isProd) console.log(`whole request: ${Date.now() - s}ms`)
   })

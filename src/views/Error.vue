@@ -6,8 +6,14 @@
 </template>
 
 <script>
+  import { mapState } from 'vuex'
+
   export default {
-    name: 'ErrorView'
+    name: 'ErrorView',
+
+    computed: {
+      ...mapState(['error'])
+    }
   }
 </script>
 
