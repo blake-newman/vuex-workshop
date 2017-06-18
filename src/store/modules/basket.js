@@ -66,9 +66,40 @@ const actions = {
   },
 }
 
+const getters = {
+  list(state, _, { product }) {
+    return Object.entries(state).map(([key, value]) => ({ ...value, ...product[key] }))
+  },
+
+  productTotal(state, _, { product }) {
+    return id => {
+      const { quantity } = state[id]
+      const { price } = product[id]
+      return price * quantity
+    }
+  },
+
+  subtotal(_, { list }) {
+    return list
+      .map(({ basePrice, quantity }) => basePrice * quantity)
+      .reduce((total, value) => total + value, 0)
+  },
+
+  total(_, { list }) {
+    return list
+      .map(({ price, quantity }) => price * quantity)
+      .reduce((total, value) => total + value, 0)
+  },
+
+  discount(_, { subtotal, total }) {
+    return subtotal - total
+  },
+}
+
 export const basketModule = {
   namespaced: true,
   state: createDefaultState,
   mutations,
   actions,
+  getters,
 }
