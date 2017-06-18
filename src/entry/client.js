@@ -1,5 +1,9 @@
 import Vue from 'vue'
 import createApp from './app'
+import bus, {
+  PROGRESS_START,
+  PROGRESS_FINISH
+} from '../utils/bus'
 
 // Polyfill provided by babel for promise for unsupported browsers;
 // Assign to window for libaries to use.
@@ -44,6 +48,13 @@ router.onReady(() => {
       next(error)
     }
   })
+
+  router.beforeEach((to, from, next) => {
+    bus.$emit(PROGRESS_START)
+    next()
+  })
+
+  router.afterEach(() => bus.$emit(PROGRESS_FINISH))
 
   // Actually mount to DOM
   app.$mount('#app')
