@@ -3,17 +3,15 @@
     <progress-bar></progress-bar>
     <header>
       <h1>Vuex Workshop</h1>
-      <basket :products="basket.products" v-model="basket.show"></basket>
+      <basket></basket>
     </header>
     <main>
-      <router-view v-if="loaded" @basket::update="basketUpdate" :basket="basket.products"></router-view>
+      <router-view></router-view>
     </main>
   </div>
 </template>
 
 <script>
-  import { getBasket } from '../api/basket'
-  import { getProductById } from '../api/product'
   import Basket from '../components/Basket.vue'
   import ProgressBar from '../components/Progress.vue'
 
@@ -23,38 +21,6 @@
     components: {
       Basket,
       ProgressBar
-    },
-
-    data () {
-      return {
-        loaded: false,
-        basket: {
-          show: false,
-          products: []
-        }
-      }
-    },
-
-    methods: {
-      basketUpdate ({ products, show = false }) {
-        this.basket.products = products
-        this.basket.show = show
-      }
-    },
-
-    mounted () {
-      getBasket().then(({ data }) => {
-        const ids = data.payload.map(({ id }) => id)
-        Promise.all(ids.map(getProductById)).then((response) => {
-          const products = response.map(item => {
-            const { payload } = item.data
-            const { quantity } = data.payload.filter(({ id }) => id === payload.id)[0]
-            return Object.assign({ quantity }, payload)
-          })
-          this.basketUpdate({ products })
-          this.loaded = true
-        })
-      })
     }
   }
 </script>
