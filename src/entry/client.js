@@ -4,11 +4,32 @@ import createApp from './app'
 // Assign to window for libaries to use.
 if (!window.Promise) window.Promise = Promise
 
-const { app, router } = createApp()
+const { app, router, store } = createApp()
 
 // wait until router has resolved all async before hooks
 // and async components...
 router.onReady(() => {
+  router.beforeResolve(async (to, from, next) => {
+    // Check difference between to and from
+    const matched = router.getMatchedComponents(to)
+    const prevMatched = router.getMatchedComponents(from)
+    let diffed = false
+    const activated = matched.filter((c, i) => diffed || (diffed = (prevMatched[i] !== c)))
+
+    const hooks = activated.map(({ asyncData }) => asyncData).filter(_ => !!_)
+
+    // If no hooks to call then return and resolve
+    if (!hooks.length) return next()
+
+    // preFetch data
+    try {
+      const res = await Promise.all(hooks.map(hook => hook(store, to, from)))
+      next(res)
+    } catch (error) {
+      next(error)
+    }
+  })
+
   // Actually mount to DOM
   app.$mount('#app')
 })
