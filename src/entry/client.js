@@ -49,7 +49,10 @@ router.onReady(() => {
     next()
   })
 
-  router.afterEach(() => bus.$emit(PROGRESS_FINISH))
+  router.afterEach(() => {
+    bus.$emit(PROGRESS_FINISH)
+    store.dispatch('context/reset')
+  })
 
   // Actually mount to DOM
   app.$mount('#app')

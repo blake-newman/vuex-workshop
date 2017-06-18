@@ -6,14 +6,17 @@
       <basket></basket>
     </header>
     <main>
-      <router-view></router-view>
+      <router-view v-if="!error"></router-view>
+      <Error v-if="error" :message="error.message" :status="error.status"></Error>
     </main>
   </div>
 </template>
 
 <script>
+import { mapState } from 'vuex'
 import Basket from '../components/Basket.vue'
 import ProgressBar from '../components/Progress.vue'
+import Error from '../components/Error.vue'
 
 export default {
   name: 'App',
@@ -21,6 +24,11 @@ export default {
   components: {
     Basket,
     ProgressBar,
+    Error,
+  },
+
+  computed: {
+    ...mapState('context', ['error']),
   },
 }
 </script>

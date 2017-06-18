@@ -106,9 +106,10 @@ function render(req, res) {
   }
 
   const context = { url: req.url }
-  renderer.renderToString(context, (error, html) => {
-    if (error) console.log(error)
-    res.end(html)
+  renderer.renderToString(context, (failure, html) => {
+    const { error } = context.state.context
+    res.status(error ? error.status : 200).end(html)
+    if (failure) console.error(`Critical: ${failure.message}`)
     if (cacheable) microCache.set(req.url, html)
     if (!isProd) console.log(`whole request: ${Date.now() - s}ms`)
   })
