@@ -29,5 +29,19 @@ export default {
       const { data } = await getProductById(id)
       commit('ADD', [data.payload])
     }
+  },
+
+  getters: {
+    list (state) {
+      return Object.keys(state).map(key => state[key])
+    },
+
+    stockedList (state, getters) {
+      return getters.list.filter(({ stocked }) => stocked)
+    },
+
+    discountedList (state, getters) {
+      return getters.list.filter(({ basePrice, price }) => basePrice > price)
+    }
   }
 }

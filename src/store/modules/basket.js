@@ -63,5 +63,36 @@ export default {
       commit('REMOVE', missing)
       commit('ADD', data.payload)
     }
+  },
+
+  getters: {
+    list (state, getters, rootState) {
+      return Object.keys(state)
+        .map(key => Object.assign({}, state[key], rootState.product[key]))
+    },
+
+    productTotal (state, getters, rootState) {
+      return id => {
+        const { quantity } = state[id]
+        const { price } = rootState.product[id]
+        return price * quantity
+      }
+    },
+
+    subtotal (state, getters) {
+      return getters.list
+        .map(({ basePrice, quantity }) => basePrice * quantity)
+        .reduce((total, value) => total + value, 0)
+    },
+
+    total (state, getters) {
+      return getters.list
+        .map(({ price, quantity }) => price * quantity)
+        .reduce((total, value) => total + value, 0)
+    },
+
+    discount (state, getters) {
+      return getters.subtotal - getters.total
+    }
   }
 }
