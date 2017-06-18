@@ -9,17 +9,18 @@
       <span class="total-price">Total</span>
     </div>
 
-    <div class="product" v-for="product in basket">
+    <div class="product" v-for="product in list">
       <div class="image">
         <img :src="product.image" :alt="product.title">
       </div>
       <div class="title">{{ product.title }}</div>
       <div class="price">{{ product.price | currency }}</div>
       <div class="quantity">
-        <input type="number" :value="product.quantity" min="1" @input="modify(product.id, $event)">
+        <input type="number" :value="product.quantity" min="1"
+               @input="updateProduct({ id: product.id, quantity: $event.target.value })">
       </div>
-      <button class="remove" @click="remove(product.id)">Remove</button>
-      <div class="total-price">{{ product.price * product.quantity | currency }}</div>
+      <button class="remove" @click="removeProduct(product)">Remove</button>
+      <div class="total-price">{{ productTotal(product.id) | currency }}</div>
     </div>
 
     <ul class="totals">
@@ -43,72 +44,29 @@
 </template>
 
 <script>
-  import {
-    removeProductFromBasket,
-    updateProductInBasket,
-    purchaseBasket
-  } from '../api/basket'
+  import { mapGetters, mapActions } from 'vuex'
 
   export default {
     name: 'CheckoutView',
 
-    props: {
-      basket: { type: Array, default: () => [] }
-    },
+    asyncData: ({ dispatch }) => dispatch('basket/get'),
 
     computed: {
-      subtotal () {
-        return this.basket
-          .map(({ basePrice, quantity }) => basePrice * quantity)
-          .reduce((baskePrice, price) => baskePrice + price, 0)
-      },
-
-      total () {
-        return this.basket
-          .map(({ price, quantity }) => price * quantity)
-          .reduce((total, price) => total + price, 0)
-      },
-
-      discount () {
-        return this.total - this.subtotal
-      }
+      ...mapGetters('basket', ['list', 'productTotal', 'subtotal', 'discount', 'total'])
     },
 
     methods: {
-      remove (id) {
-        removeProductFromBasket(id).then(() => {
-          const products = this.basket.filter(product => id !== product.id)
-          this.$emit('basket::update', { products })
-        })
-      },
-
-      modify (id, event) {
-        const quantity = event.target.value
-        if (quantity === '') return
-        updateProductInBasket(id, { quantity }).then(() => {
-          const products = this.basket.map(item => {
-            if (item.id === id) item.quantity = quantity
-            return item
-          })
-          this.$emit('basket::update', { products })
-        })
-      },
-
-      purchase () {
-        purchaseBasket().then(() => {
-          this.$emit('basket::update', { products: [] })
-        })
-      }
+      ...mapActions('basket', ['purchase', 'updateProduct', 'removeProduct'])
     },
 
     watch: {
-      basket (value, old) {
+      list (value, old) {
         if (!value.length && old.length) this.$router.replace({ name: 'ProductList' })
       }
     },
 
     beforeMount () {
-      if (!this.basket.length) this.$router.replace({ name: 'ProductList' })
+      if (!this.list.length) this.$router.replace({ name: 'ProductList' })
     }
   }
 </script>
