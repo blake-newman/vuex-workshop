@@ -25,6 +25,9 @@ Vue.mixin({
 
 const { app, router, store } = createApp()
 
+// Replace client side store state with server state
+if (window.__INITIAL_STATE__) store.replaceState(window.__INITIAL_STATE__)
+
 // wait until router has resolved all async before hooks
 // and async components...
 router.onReady(() => {
