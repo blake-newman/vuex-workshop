@@ -12,7 +12,7 @@
         <img :src="product.image" :alt="product.title" >
         <h2>{{ product.title }}</h2>
         <p class="description">{{ product.desc }}</p>
-        <button v-if="product.stocked" @click="buy(product.id)">Buy now</button>
+        <button v-if="product.stocked" @click="addProduct(product)">Buy now</button>
         <span v-if="!product.stocked" class="no-stock">Out of stock</span>
         <p class="price">
           {{ product.price | currency }}
@@ -24,27 +24,21 @@
 </template>
 
 <script>
-import { getProducts } from '../api/product'
-import { addProductToBasket } from '../api/basket'
+import { mapGetters, mapActions } from 'vuex'
 
 export default {
   name: 'ProductListView',
 
-  data() {
-    return {
-      data: [],
-      filter: 'all',
-    }
-  },
+  fetch: ({ dispatch }) => dispatch('product/get'),
+
+  data: () => ({ filter: 'all' }),
 
   computed: {
-    productsStocked() {
-      return this.data.filter(({ stocked }) => !!stocked)
-    },
-
-    productsDiscounted() {
-      return this.data.filter(({ price, basePrice }) => price < basePrice)
-    },
+    ...mapGetters('product', {
+      data: 'list',
+      productsStocked: 'listStocked',
+      productsDiscounted: 'listDiscounted',
+    }),
 
     products() {
       if (this.filter === 'stocked') return this.productsStocked
@@ -53,24 +47,8 @@ export default {
     },
   },
 
-  mounted() {
-    getProducts().then(response => {
-      const { payload } = response.data
-      this.data = payload
-    })
-  },
-
   methods: {
-    buy(id) {
-      addProductToBasket(id).then(response => {
-        const { payload } = response.data
-        const products = response.data.payload.map(({ id, quantity }) => {
-          const product = this.data.find(product => product.id === id)
-          return { ...product, quantity }
-        })
-        this.$emit('basket::update', { products, show: true })
-      })
-    },
+    ...mapActions('basket', ['addProduct']),
   },
 }
 </script>
