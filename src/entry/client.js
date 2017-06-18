@@ -1,8 +1,23 @@
+import Vue from 'vue'
 import { createApp } from './app'
 
 // Polyfill provided by babel for promise for unsupported browsers;
 // Assign to window for libaries to use.
 if (!window.Promise) window.Promise = Promise
+
+// a global mixin that calls `fetch` when a route component's params change
+Vue.mixin({
+  async beforeRouteUpdate(to, from, next) {
+    const { fetch, refetch } = this.$options
+    if (!fetch || !refetch) return next
+    try {
+      await fetch(this.$store, to, from)
+      return next()
+    } catch (error) {
+      return next(error)
+    }
+  },
+})
 
 const { app, router, store } = createApp()
 
