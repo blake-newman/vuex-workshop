@@ -8,7 +8,9 @@ import {
 } from '../../api/basket'
 
 function createState () {
-  return {}
+  return {
+    data: {}
+  }
 }
 
 export default {
@@ -18,11 +20,13 @@ export default {
 
   mutations: {
     ADD (state, payload) {
-      payload.forEach(item => Vue.set(state, item.id, item))
+      const data = {}
+      payload.forEach(item => (data[item.id] = item))
+      state.data = Object.assign({}, state.data, data)
     },
 
     REMOVE (state, payload) {
-      payload.forEach(id => Vue.delete(state, id))
+      payload.forEach(id => Vue.delete(state.data, id))
     },
 
     DESTROY (state) {
@@ -34,9 +38,7 @@ export default {
     async get ({ commit, dispatch, rootState }) {
       const { data } = await getBasket()
       const ids = data.payload.map(({ id }) => id)
-      await Promise.all(
-        ids.map(id => dispatch('product/getById', { id }, { root: true }))
-      )
+      await dispatch('product/getByIds', { ids }, { root: true })
       commit('ADD', data.payload)
     },
 
@@ -58,7 +60,7 @@ export default {
     async removeProduct ({ commit, state }, { id }) {
       const { data } = await removeProductFromBasket(id)
       const ids = data.payload.map(({ id }) => id)
-      const missing = Object.keys(state)
+      const missing = Object.keys(state.data)
         .filter(id => ids.indexOf(id) === -1)
       commit('REMOVE', missing)
       commit('ADD', data.payload)
@@ -67,14 +69,14 @@ export default {
 
   getters: {
     list (state, getters, rootState) {
-      return Object.keys(state)
-        .map(key => Object.assign({}, state[key], rootState.product[key]))
+      return Object.keys(state.data)
+        .map(key => Object.assign({}, state.data[key], rootState.product.data[key]))
     },
 
     productTotal (state, getters, rootState) {
       return id => {
-        const { quantity } = state[id]
-        const { price } = rootState.product[id]
+        const { quantity } = state.data[id]
+        const { price } = rootState.product.data[id]
         return price * quantity
       }
     },

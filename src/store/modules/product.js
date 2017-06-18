@@ -1,11 +1,12 @@
-import Vue from 'vue'
 import {
   getProducts,
   getProductById
 } from '../../api/product'
 
 function createState () {
-  return {}
+  return {
+    data: {}
+  }
 }
 
 export default {
@@ -15,7 +16,11 @@ export default {
 
   mutations: {
     ADD (state, payload) {
-      payload.forEach(item => Vue.set(state, item.id, item))
+      const data = {}
+      payload
+        .filter(item => !state.data[item.id])
+        .forEach(item => (data[item.id] = item))
+      state.data = Object.assign({}, state.data, data)
     }
   },
 
@@ -25,15 +30,18 @@ export default {
       commit('ADD', data.payload)
     },
 
-    async getById ({ commit }, { id }) {
-      const { data } = await getProductById(id)
-      commit('ADD', [data.payload])
+    async getByIds ({ commit, state }, { ids }) {
+      const getIds = ids.filter(id => !state.data[id])
+      if (!getIds.length) return
+      const response = await Promise.all(getIds.map(getProductById))
+      const data = response.map(({ data }) => data.payload)
+      commit('ADD', data)
     }
   },
 
   getters: {
     list (state) {
-      return Object.keys(state).map(key => state[key])
+      return Object.keys(state.data).map(key => state.data[key])
     },
 
     stockedList (state, getters) {
