@@ -23,7 +23,7 @@
           <transition-group name="table-row" tag="tbody">
             <tr v-for="product in products" :key="product.id">
               <td>{{ product.title }}<span> x{{ product.quantity }}</span></td>
-              <td>{{ product.price * product.quantity | currency }}</td>
+              <td>{{ productTotal(product.id) | currency }}</td>
             </tr>
           </transition-group>
           <tfoot>
@@ -41,45 +41,34 @@
 </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex'
+
 export default {
   name: 'Basket',
 
-  model: {
-    prop: 'show',
-    event: 'toggle',
-  },
-
-  props: {
-    products: { type: Array, default: () => [] },
-    show: { type: Boolean, default: false },
-  },
-
-  data() {
-    return {
-      active: this.show,
-    }
-  },
+  data: () => ({ active: false }),
 
   computed: {
-    total() {
-      return this.products
-        .map(item => item.price * item.quantity)
-        .reduce((total, price) => total + price, 0)
-    },
+    ...mapGetters('basket', { products: 'list' }),
+    ...mapGetters('basket', ['productTotal', 'total']),
   },
 
   watch: {
-    show(value) {
-      this.active = value
-    },
-
-    active(value) {
-      this.$emit('toggle', value)
+    products(products, old) {
+      const same = products.every(({ id, quantity }, key) => {
+        const item = old[key]
+        return !item || (id === item.id && quantity === item.quantity)
+      })
+      if (this.$route.name === 'Checkout' || same) return
+      this.active = true
     },
   },
 
   methods: {
-    toggle() {
+    ...mapActions('basket', ['get']),
+
+    async toggle() {
+      if (!this.active) await this.get()
       this.active = !this.active
     },
 

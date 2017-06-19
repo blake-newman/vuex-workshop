@@ -21,7 +21,7 @@ const mutations = {
   },
 
   DESTROY(state) {
-    state = createDefaultState()
+    Object.assign(state, createDefaultState())
   },
 }
 
