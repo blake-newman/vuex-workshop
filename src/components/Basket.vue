@@ -9,7 +9,7 @@
     </a>
     <div class="order">
       <div class="order-inner">
-        <table v-if="products.length" class="summary">
+        <table v-if="list.length" class="summary">
           <thead>
             <tr>
               <th>Your Order</th>
@@ -17,9 +17,9 @@
             </tr>
           </thead>
           <tbody name="table-row" is="transition-group">
-            <tr v-for="product in products" :key="product.id">
+            <tr v-for="product in list" :key="product.id">
               <td>{{ product.title }}<span> x{{ product.quantity }}</span></td>
-              <td>{{ product.price  * product.quantity | currency }}</td>
+              <td>{{ productTotal(product.id) | currency }}</td>
             </tr>
           </tbody>
           <tfoot>
@@ -29,43 +29,30 @@
           </tfoot>
         </table>
         <p v-else class="empty">No items in basket</p>
-        <button class="button cancel" :class="{ small: products.length }" @click="back">Continue Shopping</button>
-        <button v-if="products.length" @click="go" class="button checkout">Checkout</button>
+        <button class="button cancel" :class="{ small: list.length }" @click="back">Continue Shopping</button>
+        <button v-if="list.length" @click="go" class="button checkout">Checkout</button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+  import { mapGetters, mapActions } from 'vuex'
+
   export default {
     name: 'Basket',
 
-    model: {
-      prop: 'show',
-      event: 'toggle'
-    },
-
-    props: {
-      products: { type: Array, default: () => [] },
-      show: { type: Boolean, default: false }
-    },
-
-    data () {
-      return {
-        active: this.show
-      }
-    },
+    data: () => ({ active: false }),
 
     computed: {
-      total () {
-        return this.products
-          .map(item => item.price * item.quantity)
-          .reduce((total, price) => total + price, 0)
-      }
+      ...mapGetters('basket', ['list', 'productTotal', 'total'])
     },
 
     methods: {
-      toggle () {
+      ...mapActions('basket', ['get']),
+
+      async toggle () {
+        if (!this.active) await this.get()
         this.active = !this.active
       },
 
@@ -81,12 +68,13 @@
     },
 
     watch: {
-      show (value) {
-        this.active = value
-      },
-
-      active (value) {
-        this.$emit('toggle', value)
+      list (list, old) {
+        const same = list.every(({ id, quantity }, key) => {
+          const item = old[key]
+          return !item || (id === item.id && quantity === item.quantity)
+        })
+        if (this.$route.name === 'Checkout' || same) return
+        this.active = true
       }
     }
   }
